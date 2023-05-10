@@ -13,7 +13,7 @@ import java.util.List;
 
 @Repository
 public class UsuarioRepositoryDB implements IUsuarioRepository{
-    public List<Usuario> getUsuarios(){
+    public List<Usuario> getUsuarios() throws SQLException {
 
         List<Usuario> usuarioList = new ArrayList<>();
 
@@ -30,8 +30,6 @@ public class UsuarioRepositoryDB implements IUsuarioRepository{
                         .apellidos(rs.getString("APELLIDOS"))
                         .build());
 
-        } catch (SQLException e) {
-            throw new RuntimeException(e);
         }
         return usuarioList;
     }

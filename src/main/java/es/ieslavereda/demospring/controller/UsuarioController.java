@@ -7,7 +7,11 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.sql.SQLException;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
+import java.util.Objects;
 
 @RestController
 @RequestMapping("/api")
@@ -17,8 +21,16 @@ public class UsuarioController {
     private UsuarioService service;
 
     @GetMapping("/usuarios")
-    public List<Usuario> getUsuarios() {
-        return service.getUsers();
+    public ResponseEntity<?> getUsuarios() {
+
+        try{
+            return new ResponseEntity<>(service.getUsers(),HttpStatus.OK);
+        }catch (SQLException sqlException){
+            Map<String, Object> response = new HashMap<>();
+            response.put("code",sqlException.getErrorCode());
+            response.put("message",sqlException.getMessage());
+            return new ResponseEntity<>(response,HttpStatus.INTERNAL_SERVER_ERROR);
+        }
     }
 
     @GetMapping("/usuarios/{id}")
