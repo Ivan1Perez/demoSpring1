@@ -24,8 +24,10 @@ public class UsuarioRepositoryDB implements IUsuarioRepository{
 
             if (rs.next()) {
                 usuario = new Usuario(rs.getInt("IDUSUARIO"), rs.getString("NOMBRE"), rs.getString("APELLIDOS"));
-            } else {
-                throw new RuntimeException("No se encontró el usuario con la sentencia: " + sql);
+            }
+
+            if(usuario!=null){
+
             }
 
         } catch (SQLException e) {
@@ -35,23 +37,28 @@ public class UsuarioRepositoryDB implements IUsuarioRepository{
     }
 
 
-    public List<Usuario> getUsuarios() throws SQLException {
+    public List<Usuario> getUsuarios(){
 
         List<Usuario> usuarioList = new ArrayList<>();
 
         String sql = "SELECT * FROM USUARIO";
 
-        try(Connection c = MyDataSource.getMySQLDataSource().getConnection();
+        try(
+            Connection c = MyDataSource.getMySQLDataSource().getConnection();
             Statement stmt = c.createStatement();
-            ResultSet rs = stmt.executeQuery(sql)){
+            ResultSet rs = stmt.executeQuery(sql)
+        ){
 
-            while (rs.next())
-                usuarioList.add(Usuario.builder()
+            while (rs.next()) {
+                usuarioList.add(
+                        Usuario.builder()
                         .idUsuario(rs.getInt("IDUSUARIO"))
                         .nombre(rs.getString("NOMBRE"))
-                        .apellidos(rs.getString("APELLIDOS"))
+                        .apellidos(rs.getString("APELLIDO"))
                         .build());
-
+            }
+        }catch (SQLException e){
+            throw new RuntimeException(e);
         }
         return usuarioList;
     }
@@ -64,8 +71,27 @@ public class UsuarioRepositoryDB implements IUsuarioRepository{
 
     @Override
     public Usuario deleteUser(int id) {
+        Usuario usuario;
         String sql = "DELETE FROM USUARIO WHERE IDUSUARIO = " + id;
-        return executeSqlAndGetUser(sql);
+        String obtenerUsuario = "SELECT * FROM USUARIO WHERE IDUSUARIO = " + id;
+
+        try(Connection c = MyDataSource.getMySQLDataSource().getConnection();
+            Statement stmt = c.createStatement();
+            ResultSet rs = stmt.executeQuery(sql)){
+
+            if (rs.next()) {
+                usuario = new Usuario(rs.getInt("IDUSUARIO"), rs.getString("NOMBRE"), rs.getString("APELLIDOS"));
+            }
+
+            if(usuario!=null){
+
+            }
+
+        } catch (SQLException e) {
+            throw new RuntimeException("Error al ejecutar la sentencia: " + sql, e);
+        }
+
+        return usuario;
     }
 
     @Override

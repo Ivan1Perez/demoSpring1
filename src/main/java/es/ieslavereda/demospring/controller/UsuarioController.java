@@ -21,7 +21,7 @@ public class UsuarioController {
     private UsuarioService service;
 
     @GetMapping("/usuarios")
-    public ResponseEntity<?> getUsuarios() {
+    public ResponseEntity<?> getUsuarios() throws SQLException {
 
         try{
             return new ResponseEntity<>(service.getUsers(),HttpStatus.OK);

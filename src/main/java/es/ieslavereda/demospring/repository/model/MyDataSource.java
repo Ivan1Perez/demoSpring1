@@ -9,9 +9,9 @@ public class MyDataSource {
 
     public static DataSource getMySQLDataSource() throws SQLException {
         OracleDataSource dataSource = new OracleDataSource();
-        dataSource.setURL("jdbc:oracle:thin:@//192.168.1.38:1539/xe");
-        dataSource.setUser("sys as sysdba");
-        dataSource.setPassword("oracle");
+        dataSource.setURL("jdbc:oracle:thin:@//10.0.0.21:1521/xe");
+        dataSource.setUser("C##1DAWPEREZ");
+        dataSource.setPassword("1234");
         return dataSource;
     }
 }
