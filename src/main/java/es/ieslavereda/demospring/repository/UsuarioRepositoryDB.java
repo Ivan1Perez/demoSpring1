@@ -15,28 +15,6 @@ import java.util.List;
 @Repository
 public class UsuarioRepositoryDB implements IUsuarioRepository{
 
-    private Usuario executeSqlAndGetUser(String sql) {
-        Usuario usuario;
-
-        try(Connection c = MyDataSource.getMySQLDataSource().getConnection();
-            Statement stmt = c.createStatement();
-            ResultSet rs = stmt.executeQuery(sql)){
-
-            if (rs.next()) {
-                usuario = new Usuario(rs.getInt("IDUSUARIO"), rs.getString("NOMBRE"), rs.getString("APELLIDOS"));
-            }
-
-            if(usuario!=null){
-
-            }
-
-        } catch (SQLException e) {
-            throw new RuntimeException("Error al ejecutar la sentencia: " + sql, e);
-        }
-        return usuario;
-    }
-
-
     public List<Usuario> getUsuarios(){
 
         List<Usuario> usuarioList = new ArrayList<>();
@@ -54,7 +32,7 @@ public class UsuarioRepositoryDB implements IUsuarioRepository{
                         Usuario.builder()
                         .idUsuario(rs.getInt("IDUSUARIO"))
                         .nombre(rs.getString("NOMBRE"))
-                        .apellidos(rs.getString("APELLIDO"))
+                        .apellidos(rs.getString("APELLIDOS"))
                         .build());
             }
         }catch (SQLException e){
@@ -65,30 +43,46 @@ public class UsuarioRepositoryDB implements IUsuarioRepository{
 
     @Override
     public Usuario getUsuario(int id) {
+        Usuario u = null;
         String sql = "SELECT * FROM USUARIO WHERE IDUSUARIO = " + id;
-        return executeSqlAndGetUser(sql);
-    }
-
-    @Override
-    public Usuario deleteUser(int id) {
-        Usuario usuario;
-        String sql = "DELETE FROM USUARIO WHERE IDUSUARIO = " + id;
-        String obtenerUsuario = "SELECT * FROM USUARIO WHERE IDUSUARIO = " + id;
 
         try(Connection c = MyDataSource.getMySQLDataSource().getConnection();
             Statement stmt = c.createStatement();
             ResultSet rs = stmt.executeQuery(sql)){
 
             if (rs.next()) {
-                usuario = new Usuario(rs.getInt("IDUSUARIO"), rs.getString("NOMBRE"), rs.getString("APELLIDOS"));
-            }
-
-            if(usuario!=null){
-
+                u = new Usuario(rs.getInt("IDUSUARIO"), rs.getString("NOMBRE"), rs.getString("APELLIDOS"));
             }
 
         } catch (SQLException e) {
             throw new RuntimeException("Error al ejecutar la sentencia: " + sql, e);
+        }
+
+        return u;
+    }
+
+    @Override
+    public Usuario deleteUser(int id) {
+        Usuario usuario = null;
+        String sqlDeleteUser = "DELETE FROM USUARIO WHERE IDUSUARIO = " + id;
+        String obtenerUsuario = "SELECT * FROM USUARIO WHERE IDUSUARIO = " + id;
+        int rowsAffected = 0;
+
+        try(Connection c = MyDataSource.getMySQLDataSource().getConnection();
+            Statement stmt = c.createStatement();
+            ResultSet rs = stmt.executeQuery(obtenerUsuario)){
+
+            if (rs.next()) {
+                usuario = new Usuario(rs.getInt("IDUSUARIO"), rs.getString("NOMBRE"), rs.getString("APELLIDOS"));
+                rowsAffected = stmt.executeUpdate(sqlDeleteUser);
+
+                if(rowsAffected!=1){
+                    throw new RuntimeException("Error al eliminar el usuario");
+                }
+            }
+
+        } catch (SQLException e) {
+            throw new RuntimeException("Error al ejecutar la sentencia: " + obtenerUsuario, e);
         }
 
         return usuario;
@@ -99,16 +93,18 @@ public class UsuarioRepositoryDB implements IUsuarioRepository{
 
         String sql = "INSERT INTO USUARIO " +
                 "VALUES(" +
-                usuario.getIdUsuario() + "," +
-                usuario.getNombre() + "," +
+                usuario.getIdUsuario() + ",'" +
+                usuario.getNombre() + "','" +
                 usuario.getApellidos() +
-                ")";
+                "')";
+
+        int rowsAffected = 0;
 
         try(Connection c = MyDataSource.getMySQLDataSource().getConnection();
-            Statement stmt = c.createStatement()
+            Statement stmt = c.createStatement();
         ){
 
-            int rowsAffected = stmt.executeUpdate(sql);
+            rowsAffected = stmt.executeUpdate(sql);
             if (rowsAffected == 0) {
                 throw new RuntimeException("No se pudo insertar el usuario");
             }
@@ -121,6 +117,34 @@ public class UsuarioRepositoryDB implements IUsuarioRepository{
 
     @Override
     public Usuario updateUser(Usuario usuario) {
-        return null;
+        Usuario u = null;
+        String sqlSelectUsuario = "SELECT * FROM USUARIO WHERE IDUSUARIO = " + usuario.getIdUsuario();
+        String sqlUpdateUsuario = "UPDATE USUARIO " +
+                "SET " +
+                "NOMBRE='" + usuario.getNombre() + "'," +
+                "APELLIDOS='" + usuario.getApellidos() + "'" +
+                "WHERE IDUSUARIO=" + usuario.getIdUsuario();
+
+        int rowsAffected = 0;
+
+        try(Connection c = MyDataSource.getMySQLDataSource().getConnection();
+            Statement stmt = c.createStatement();
+            ResultSet rs = stmt.executeQuery(sqlSelectUsuario)){
+
+            if (rs.next()) {
+                rowsAffected =  stmt.executeUpdate(sqlUpdateUsuario);
+
+                if(rowsAffected!=1){
+                    throw new RuntimeException("No se ha podido actualizar el usuario.");
+                }else{
+                    u = new Usuario(usuario.getIdUsuario(),usuario.getNombre(),usuario.getApellidos());
+                }
+            }
+
+        } catch (SQLException e) {
+            throw new RuntimeException("Error al ejecutar la sentencia: " + sqlSelectUsuario, e);
+        }
+
+        return u;
     }
 }

@@ -21,7 +21,7 @@ public class UsuarioController {
     private UsuarioService service;
 
     @GetMapping("/usuarios")
-    public ResponseEntity<?> getUsuarios() throws SQLException {
+    public ResponseEntity<?> getUsuarios() {
 
         try{
             return new ResponseEntity<>(service.getUsers(),HttpStatus.OK);
@@ -49,7 +49,8 @@ public class UsuarioController {
         Usuario usuario = service.deleteUserById(id);
 
         if (usuario != null)
-            return new ResponseEntity<>(usuario, HttpStatus.OK);
+            return new ResponseEntity<>("El siguiente usuario ha sido eliminado con éxito:\n" +
+                    usuario, HttpStatus.OK);
         else
             return new ResponseEntity<>("El usuario no existe.", HttpStatus.NOT_FOUND);
     }
