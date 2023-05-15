@@ -1,5 +1,6 @@
 package es.ieslavereda.demospring.repository.model;
 
+import com.mysql.cj.jdbc.MysqlDataSource;
 import oracle.jdbc.datasource.impl.OracleDataSource;
 
 import javax.sql.DataSource;
@@ -8,10 +9,11 @@ import java.sql.SQLException;
 public class MyDataSource {
 
     public static DataSource getMySQLDataSource() throws SQLException {
-        OracleDataSource dataSource = new OracleDataSource();
-        dataSource.setURL("jdbc:oracle:thin:@//192.168.1.38:1539/xe");
-        dataSource.setUser("sys as sysdba");
-        dataSource.setPassword("oracle");
-        return dataSource;
+        MysqlDataSource mysqlDS = new MysqlDataSource();
+
+        mysqlDS.setURL("jdbc:mysql://10.13.1.1:/java");
+        mysqlDS.setUser("jalonso");
+        mysqlDS.setPassword("1111");
+        return mysqlDS;
     }
 }

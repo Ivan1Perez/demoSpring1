@@ -7,21 +7,21 @@ import lombok.*;
 @AllArgsConstructor
 @NoArgsConstructor
 @Builder
-@ToString
-public class Usuario {
+public class Oficio {
 
-    private int idUsuario;
-    private String nombre;
-    private String apellidos;
     private int idOficio;
+    private String descripcion;
+    private byte[] imagen;
+    private String imageurl;
 
     @Override
     public boolean equals(Object obj){
-        if(!(obj instanceof Usuario))
+        if(!(obj instanceof Oficio))
             return false;
 
-        Usuario u = (Usuario) obj;
-        return u.getIdUsuario()==getIdUsuario();
+        Oficio o = (Oficio) obj;
+        return o.getIdOficio()==getIdOficio();
     }
+
 
 }

@@ -5,10 +5,7 @@ import es.ieslavereda.demospring.repository.model.Usuario;
 import lombok.ToString;
 import org.springframework.stereotype.Repository;
 
-import java.sql.Connection;
-import java.sql.ResultSet;
-import java.sql.SQLException;
-import java.sql.Statement;
+import java.sql.*;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -19,20 +16,21 @@ public class UsuarioRepositoryDB implements IUsuarioRepository{
 
         List<Usuario> usuarioList = new ArrayList<>();
 
-        String sql = "SELECT * FROM USUARIO";
+        String sql = "{call obtener_usuarios() }";
 
         try(
-            Connection c = MyDataSource.getMySQLDataSource().getConnection();
-            Statement stmt = c.createStatement();
-            ResultSet rs = stmt.executeQuery(sql)
+                Connection c = MyDataSource.getMySQLDataSource().getConnection();
+                CallableStatement cs = c.prepareCall(sql);
+                ResultSet rs = cs.executeQuery();
         ){
 
             while (rs.next()) {
                 usuarioList.add(
                         Usuario.builder()
-                        .idUsuario(rs.getInt("IDUSUARIO"))
-                        .nombre(rs.getString("NOMBRE"))
-                        .apellidos(rs.getString("APELLIDOS"))
+                        .idUsuario(rs.getInt("idUsuario"))
+                        .nombre(rs.getString("nombre"))
+                        .apellidos(rs.getString("apellidos"))
+                        .idOficio(rs.getInt("Oficio_idOficio"))
                         .build());
             }
         }catch (SQLException e){
@@ -44,14 +42,20 @@ public class UsuarioRepositoryDB implements IUsuarioRepository{
     @Override
     public Usuario getUsuario(int id) {
         Usuario u = null;
-        String sql = "SELECT * FROM USUARIO WHERE IDUSUARIO = " + id;
+        String sql = "{call obtener_usuario(?)}";
 
         try(Connection c = MyDataSource.getMySQLDataSource().getConnection();
-            Statement stmt = c.createStatement();
-            ResultSet rs = stmt.executeQuery(sql)){
+            CallableStatement cs = c.prepareCall(sql)){
+
+            int pos = 0;
+
+            cs.setInt(++pos,id);
+
+            ResultSet rs = cs.executeQuery();
 
             if (rs.next()) {
-                u = new Usuario(rs.getInt("IDUSUARIO"), rs.getString("NOMBRE"), rs.getString("APELLIDOS"));
+                u = new Usuario(rs.getInt("idUsuario"), rs.getString("nombre"),
+                        rs.getString("apellidos"), rs.getInt("Oficio_idOficio"));
             }
 
         } catch (SQLException e) {
@@ -64,25 +68,30 @@ public class UsuarioRepositoryDB implements IUsuarioRepository{
     @Override
     public Usuario deleteUser(int id) {
         Usuario usuario = null;
-        String sqlDeleteUser = "DELETE FROM USUARIO WHERE IDUSUARIO = " + id;
-        String obtenerUsuario = "SELECT * FROM USUARIO WHERE IDUSUARIO = " + id;
-        int rowsAffected = 0;
+        String sqlDeleteUser = "{call eliminar_usuario(?)}";
+        String sqlObtenerUsuario = "{call obtener_usuario(?)}";
 
         try(Connection c = MyDataSource.getMySQLDataSource().getConnection();
-            Statement stmt = c.createStatement();
-            ResultSet rs = stmt.executeQuery(obtenerUsuario)){
+            CallableStatement cs = c.prepareCall(sqlObtenerUsuario)){
+
+            int pos = 0;
+
+            cs.setInt(++pos,id);
+
+            ResultSet rs = cs.executeQuery();
 
             if (rs.next()) {
-                usuario = new Usuario(rs.getInt("IDUSUARIO"), rs.getString("NOMBRE"), rs.getString("APELLIDOS"));
-                rowsAffected = stmt.executeUpdate(sqlDeleteUser);
+                usuario = new Usuario(rs.getInt("idUsuario"), rs.getString("nombre"),
+                        rs.getString("apellidos"), rs.getInt("Oficio_idOficio"));
 
-                if(rowsAffected!=1){
+
+                if(cs.executeUpdate(sqlDeleteUser)!=1){
                     throw new RuntimeException("Error al eliminar el usuario");
                 }
             }
 
         } catch (SQLException e) {
-            throw new RuntimeException("Error al ejecutar la sentencia: " + obtenerUsuario, e);
+            throw new RuntimeException("Error al ejecutar la sentencia: " + sqlObtenerUsuario, e);
         }
 
         return usuario;
@@ -91,22 +100,20 @@ public class UsuarioRepositoryDB implements IUsuarioRepository{
     @Override
     public Usuario addUser(Usuario usuario) {
 
-        String sql = "INSERT INTO USUARIO " +
-                "VALUES(" +
-                usuario.getIdUsuario() + ",'" +
-                usuario.getNombre() + "','" +
-                usuario.getApellidos() +
-                "')";
-
-        int rowsAffected = 0;
+        String sql = "{call crear_usuario(?,?,?,?)}";
 
         try(Connection c = MyDataSource.getMySQLDataSource().getConnection();
-            Statement stmt = c.createStatement();
-        ){
+            CallableStatement cs = c.prepareCall(sql)){
 
-            rowsAffected = stmt.executeUpdate(sql);
-            if (rowsAffected == 0) {
-                throw new RuntimeException("No se pudo insertar el usuario");
+            int pos = 0;
+
+            cs.setInt(++pos,usuario.getIdUsuario());
+            cs.setString(++pos,usuario.getNombre());
+            cs.setString(++pos,usuario.getApellidos());
+            cs.setInt(++pos,usuario.getIdOficio());
+
+            if(cs.executeUpdate()!=1){
+                throw new RuntimeException("Error al crear el usuario");
             }
 
         } catch (SQLException e) {
@@ -118,31 +125,24 @@ public class UsuarioRepositoryDB implements IUsuarioRepository{
     @Override
     public Usuario updateUser(Usuario usuario) {
         Usuario u = null;
-        String sqlSelectUsuario = "SELECT * FROM USUARIO WHERE IDUSUARIO = " + usuario.getIdUsuario();
-        String sqlUpdateUsuario = "UPDATE USUARIO " +
-                "SET " +
-                "NOMBRE='" + usuario.getNombre() + "'," +
-                "APELLIDOS='" + usuario.getApellidos() + "'" +
-                "WHERE IDUSUARIO=" + usuario.getIdUsuario();
-
-        int rowsAffected = 0;
+        String sql = "{call actualizar_usuario(?,?,?,?)}";
 
         try(Connection c = MyDataSource.getMySQLDataSource().getConnection();
-            Statement stmt = c.createStatement();
-            ResultSet rs = stmt.executeQuery(sqlSelectUsuario)){
+            CallableStatement cs = c.prepareCall(sql)){
 
-            if (rs.next()) {
-                rowsAffected =  stmt.executeUpdate(sqlUpdateUsuario);
+            int pos = 0;
 
-                if(rowsAffected!=1){
-                    throw new RuntimeException("No se ha podido actualizar el usuario.");
-                }else{
-                    u = new Usuario(usuario.getIdUsuario(),usuario.getNombre(),usuario.getApellidos());
-                }
+            cs.setInt(++pos,usuario.getIdUsuario());
+            cs.setString(++pos,usuario.getNombre());
+            cs.setString(++pos,usuario.getApellidos());
+            cs.setInt(++pos,usuario.getIdOficio());
+
+            if(cs.executeUpdate()!=1){
+                throw new RuntimeException("Error al crear el usuario");
             }
 
         } catch (SQLException e) {
-            throw new RuntimeException("Error al ejecutar la sentencia: " + sqlSelectUsuario, e);
+            throw new RuntimeException("Error al ejecutar la sentencia: " + sql, e);
         }
 
         return u;
