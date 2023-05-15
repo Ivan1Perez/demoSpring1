@@ -19,7 +19,7 @@ public class UsuarioService {
     }
 
     public Usuario getUserById(int id){
-        return  repository.getUsuario(id);
+        return repository.getUsuario(id);
     }
 
     public Usuario deleteUserById(int id) {

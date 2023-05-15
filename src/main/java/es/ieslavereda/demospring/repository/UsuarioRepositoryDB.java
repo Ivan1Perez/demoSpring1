@@ -85,9 +85,7 @@ public class UsuarioRepositoryDB implements IUsuarioRepository{
                         rs.getString("apellidos"), rs.getInt("Oficio_idOficio"));
 
 
-                if(cs.executeUpdate(sqlDeleteUser)!=1){
-                    throw new RuntimeException("Error al eliminar el usuario");
-                }
+                cs.executeUpdate(sqlDeleteUser);
             }
 
         } catch (SQLException e) {
@@ -112,9 +110,7 @@ public class UsuarioRepositoryDB implements IUsuarioRepository{
             cs.setString(++pos,usuario.getApellidos());
             cs.setInt(++pos,usuario.getIdOficio());
 
-            if(cs.executeUpdate()!=1){
-                throw new RuntimeException("Error al crear el usuario");
-            }
+            cs.executeUpdate();
 
         } catch (SQLException e) {
             throw new RuntimeException("Error al ejecutar la sentencia: " + sql, e);
