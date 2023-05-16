@@ -67,29 +67,27 @@ public class UsuarioRepositoryDB implements IUsuarioRepository{
 
     @Override
     public Usuario deleteUser(int id) {
-        Usuario usuario = null;
-        String sqlDeleteUser = "{call eliminar_usuario(?)}";
-        String sqlObtenerUsuario = "{call obtener_usuario(?)}";
+        Usuario usuario = getUsuario(id);
+        String sql = "{? = call eliminar_usuario(?)}";
 
-        try(Connection c = MyDataSource.getMySQLDataSource().getConnection();
-            CallableStatement cs = c.prepareCall(sqlObtenerUsuario)){
+        if(usuario!=null){
+            try(Connection c = MyDataSource.getMySQLDataSource().getConnection();
+                CallableStatement cs = c.prepareCall(sql)){
 
-            int pos = 0;
+                cs.registerOutParameter(1,Types.INTEGER);
+                int pos = 1;
 
-            cs.setInt(++pos,id);
+                cs.setInt(++pos,id);
 
-            ResultSet rs = cs.executeQuery();
+                cs.execute();
 
-            if (rs.next()) {
-                usuario = new Usuario(rs.getInt("idUsuario"), rs.getString("nombre"),
-                        rs.getString("apellidos"), rs.getInt("Oficio_idOficio"));
+                if (cs.getInt(1)!=1) {
+                   throw new RuntimeException("Error al eliminar el usuario");
+                }
 
-
-                cs.executeUpdate(sqlDeleteUser);
+            } catch (SQLException e) {
+                throw new RuntimeException("Error al ejecutar la sentencia: " + sql, e);
             }
-
-        } catch (SQLException e) {
-            throw new RuntimeException("Error al ejecutar la sentencia: " + sqlObtenerUsuario, e);
         }
 
         return usuario;
@@ -121,21 +119,24 @@ public class UsuarioRepositoryDB implements IUsuarioRepository{
     @Override
     public Usuario updateUser(Usuario usuario) {
         Usuario u = null;
-        String sql = "{call actualizar_usuario(?,?,?,?)}";
+
+        String sql = "{? = call actualizar_usuario(?,?,?,?)}";
 
         try(Connection c = MyDataSource.getMySQLDataSource().getConnection();
             CallableStatement cs = c.prepareCall(sql)){
 
-            int pos = 0;
+            cs.registerOutParameter(1,Types.INTEGER);
+            int pos = 1;
 
             cs.setInt(++pos,usuario.getIdUsuario());
             cs.setString(++pos,usuario.getNombre());
             cs.setString(++pos,usuario.getApellidos());
             cs.setInt(++pos,usuario.getIdOficio());
 
-            if(cs.executeUpdate()!=1){
-                throw new RuntimeException("Error al crear el usuario");
-            }
+            cs.execute();
+
+            if (cs.getInt(1)>0)
+                u = usuario;
 
         } catch (SQLException e) {
             throw new RuntimeException("Error al ejecutar la sentencia: " + sql, e);

@@ -7,7 +7,7 @@ import java.util.List;
 
 public interface IOficioRepository {
 
-    public List<Oficio> getOficios() throws SQLException;
+    public List<Oficio> getOficios(int id) throws SQLException;
 
     public byte[] getImageById(int id);
 

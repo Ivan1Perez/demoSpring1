@@ -14,8 +14,8 @@ public class OficioService {
     @Autowired
     private IOficioRepository repository;
 
-    public List<Oficio> getOficios() throws SQLException{
-        return repository.getOficios();
+    public List<Oficio> getOficios(int id) throws SQLException{
+        return repository.getOficios(id);
     }
 
     public byte[] getImageById(int id){
