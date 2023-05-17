@@ -96,19 +96,20 @@ public class UsuarioRepositoryDB implements IUsuarioRepository{
     @Override
     public Usuario addUser(Usuario usuario) {
 
-        String sql = "{call crear_usuario(?,?,?,?)}";
+        String sql = "{call crear_usuario(?,?,?,?,?)}";
 
         try(Connection c = MyDataSource.getMySQLDataSource().getConnection();
             CallableStatement cs = c.prepareCall(sql)){
 
             int pos = 0;
 
+            cs.registerOutParameter(++pos,u);
             cs.setInt(++pos,usuario.getIdUsuario());
             cs.setString(++pos,usuario.getNombre());
             cs.setString(++pos,usuario.getApellidos());
             cs.setInt(++pos,usuario.getIdOficio());
 
-            cs.executeUpdate();
+            cs.execute();
 
         } catch (SQLException e) {
             throw new RuntimeException("Error al ejecutar la sentencia: " + sql, e);

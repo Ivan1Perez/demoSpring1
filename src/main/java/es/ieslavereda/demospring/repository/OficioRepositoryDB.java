@@ -5,17 +5,45 @@ import es.ieslavereda.demospring.repository.model.Oficio;
 import es.ieslavereda.demospring.repository.model.Usuario;
 import org.springframework.stereotype.Repository;
 
-import java.sql.CallableStatement;
-import java.sql.Connection;
-import java.sql.ResultSet;
-import java.sql.SQLException;
+import java.sql.*;
 import java.util.ArrayList;
 import java.util.List;
+
+import static java.sql.Types.NULL;
+
 
 @Repository
 public class OficioRepositoryDB implements IOficioRepository{
 
-    public List<Oficio> getOficios(int id){
+    public Oficio getOficio(int id){
+
+        Oficio oficio = null;
+
+        String sql = "{call obtener_oficios(?)}";
+
+        try(
+                Connection c = MyDataSource.getMySQLDataSource().getConnection();
+                CallableStatement cs = c.prepareCall(sql);
+        ){
+
+            int pos = 0;
+
+            cs.setInt(++pos,id);
+
+            ResultSet rs = cs.executeQuery();
+
+            if (rs.next()) {
+                oficio = new Oficio(rs.getInt("idOficio"),rs.getString("descripcion"),
+                        rs.getBytes("image"),rs.getString("imageurl"));
+            }
+        }catch (SQLException e){
+            throw new RuntimeException(e);
+        }
+
+        return oficio;
+    }
+
+    public List<Oficio> getOficios(){
 
         List<Oficio> oficioList = new ArrayList<>();
 
@@ -28,7 +56,8 @@ public class OficioRepositoryDB implements IOficioRepository{
 
             int pos = 0;
 
-            cs.setInt(++pos, id);
+            cs.setNull(++pos, NULL);
+
             ResultSet rs = cs.executeQuery();
 
             while (rs.next()) {
@@ -48,28 +77,25 @@ public class OficioRepositoryDB implements IOficioRepository{
     }
 
     @Override
-    public byte[] getImageById(int id) {
-//        byte[] imagen;
-//        String sql = "{call obtener_usuario(?)}";
-//
-//        try(Connection c = MyDataSource.getMySQLDataSource().getConnection();
-//            CallableStatement cs = c.prepareCall(sql)){
-//
-//            int pos = 0;
-//
-//            cs.setInt(++pos,id);
-//
-//            ResultSet rs = cs.executeQuery();
-//
-//            if (rs.next()) {
-//                u = new Usuario(rs.getInt("idUsuario"), rs.getString("nombre"),
-//                        rs.getString("apellidos"), rs.getInt("Oficio_idOficio"));
-//            }
-//
-//        } catch (SQLException e) {
-//            throw new RuntimeException("Error al ejecutar la sentencia: " + sql, e);
-//        }
+    public Blob getImageById(int id) {
 
-        return new byte[0];
+        String sql = "{call obtener_image_oficio(?,?)}";
+
+        try(Connection c = MyDataSource.getMySQLDataSource().getConnection();
+            CallableStatement cs = c.prepareCall(sql)){
+
+            int pos = 0;
+
+            cs.registerOutParameter(++pos, Types.BLOB);
+            cs.setInt(++pos,id);
+
+            cs.execute();
+
+            return cs.getBlob(1);
+
+        } catch (SQLException e) {
+            throw new RuntimeException("Error al ejecutar la sentencia: " + sql, e);
+        }
+
     }
 }

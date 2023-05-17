@@ -5,6 +5,7 @@ import es.ieslavereda.demospring.repository.model.Oficio;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import java.sql.Blob;
 import java.sql.SQLException;
 import java.util.List;
 
@@ -14,12 +15,17 @@ public class OficioService {
     @Autowired
     private IOficioRepository repository;
 
-    public List<Oficio> getOficios(int id) throws SQLException{
-        return repository.getOficios(id);
+    public Oficio getOficio(int id) throws SQLException{
+        return repository.getOficio(id);
     }
 
-    public byte[] getImageById(int id){
-        return repository.getImageById(id);
+    public List<Oficio> getOficios() throws SQLException{
+        return repository.getOficios();
+    }
+
+    public byte[] getImageById(int id) throws SQLException {
+        Blob b = repository.getImageById(id);
+        return b.getBytes(1,(int) b.length());
     }
 
 
