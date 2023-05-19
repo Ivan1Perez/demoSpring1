@@ -103,7 +103,7 @@ public class UsuarioRepositoryDB implements IUsuarioRepository{
 
             int pos = 0;
 
-            cs.registerOutParameter(++pos,u);
+            cs.registerOutParameter(++pos,Types.INTEGER);
             cs.setInt(++pos,usuario.getIdUsuario());
             cs.setString(++pos,usuario.getNombre());
             cs.setString(++pos,usuario.getApellidos());
@@ -114,6 +114,7 @@ public class UsuarioRepositoryDB implements IUsuarioRepository{
         } catch (SQLException e) {
             throw new RuntimeException("Error al ejecutar la sentencia: " + sql, e);
         }
+
         return usuario;
     }
 

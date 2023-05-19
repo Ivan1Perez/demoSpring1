@@ -11,8 +11,8 @@ public class MyDataSource {
     public static DataSource getMySQLDataSource() throws SQLException {
         MysqlDataSource mysqlDS = new MysqlDataSource();
 
-        mysqlDS.setURL("jdbc:mysql://10.13.0.3:/java");
-        mysqlDS.setUser("jalonso");
+        mysqlDS.setURL("jdbc:mysql://192.168.1.36:/java");
+        mysqlDS.setUser("iperez");
         mysqlDS.setPassword("1111");
         return mysqlDS;
     }
