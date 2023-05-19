@@ -8,6 +8,7 @@ import org.springframework.stereotype.Repository;
 import java.sql.*;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.logging.Logger;
 
 @Repository
 public class UsuarioRepositoryDB implements IUsuarioRepository{
@@ -104,19 +105,28 @@ public class UsuarioRepositoryDB implements IUsuarioRepository{
             int pos = 0;
 
             cs.registerOutParameter(++pos,Types.INTEGER);
-            cs.setInt(++pos,usuario.getIdUsuario());
+            if(usuario.getIdUsuario()==null){
+                cs.setNull(++pos,Types.NULL);
+            }else{
+                cs.setInt(++pos,usuario.getIdUsuario());
+            }
             cs.setString(++pos,usuario.getNombre());
             cs.setString(++pos,usuario.getApellidos());
             cs.setInt(++pos,usuario.getIdOficio());
 
             cs.execute();
 
+            if (usuario.getIdUsuario() == null) {
+                usuario.setIdUsuario(cs.getInt(1));
+            }
+            return usuario;
+
         } catch (SQLException e) {
             throw new RuntimeException("Error al ejecutar la sentencia: " + sql, e);
         }
 
-        return usuario;
     }
+
 
     @Override
     public Usuario updateUser(Usuario usuario) {

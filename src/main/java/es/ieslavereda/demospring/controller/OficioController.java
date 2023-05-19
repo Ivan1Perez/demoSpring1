@@ -63,17 +63,13 @@ public class OficioController {
             response.put("encoding","StandardCharsets.ISO_8859_1");
             response.put("image", output);
             return new ResponseEntity<>(response, HttpStatus.OK);
-//            image = service.getImageById(id);
+
         } catch (SQLException e) {
 
             return new ResponseEntity<>("La imagen no existe.", HttpStatus.NOT_FOUND);
 
         }
 
-//        if (image != null)
-//            return new ResponseEntity<>(image, HttpStatus.OK);
-//        else
-//            return new ResponseEntity<>("La imagen no existe.", HttpStatus.NOT_FOUND);
     }
 
 }
