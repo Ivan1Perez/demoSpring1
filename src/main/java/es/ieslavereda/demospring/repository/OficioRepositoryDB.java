@@ -65,7 +65,7 @@ public class OficioRepositoryDB implements IOficioRepository{
                         Oficio.builder()
                                 .idOficio(rs.getInt("idOficio"))
                                 .descripcion(rs.getString("descripcion"))
-                                .imagen(rs.getBytes("image"))
+//                                .imagen(rs.getBytes("image"))
                                 .imageurl(rs.getString("imageurl"))
                                 .build());
             }
